@@ -16,7 +16,13 @@ activity <- read.csv('activity.csv')
 activity$date <- as.Date(activity$date)
 activity$steps <- as.numeric(as.character(activity$steps))
 activity$interval <- as.numeric(as.character(activity$interval))
-```  
+
+obs <- nrow(activity)
+completeObs <- nrow(na.omit(activity))
+missingObs <- obs - completeObs
+```
+
+There are `r obs` observations. `r missingObs` rows are missing observations.
   
 ### Histogram of the total number of steps taken each day
 
@@ -39,11 +45,24 @@ summary(total_steps_by_date$x)
 ```{r}
 by_interval <- split(activity, activity$interval)
 avg_by_interval <- sapply(by_interval, function(x) mean(x$steps, na.rm=TRUE))
-plot(avg_by_interval, type="l", xlab="Interval Index",
+plot(avg_by_interval, type="l",
+     xlab="Interval",
      ylab="Average Number of Steps",
-     main="Average Number of Steps Per Five Minute Interval")
+     main="Average Number of Steps Per Five Minute Interval",
+     xaxt = "n")
+xtic <- seq(0, length(avg_by_interval), 24)
+xlabel <- seq(0, 2400, 200)
+axis(1, at=xtic, labels=FALSE)
+text(x=xtic, y=par("usr")[3]-15, labels=xlabel, srt=90, adj=1, xpd=TRUE)
 ```
 
 The five minute interval which contains the maximum average number of steps
 occurs at interval `r names(which.max(avg_by_interval))`.
 
+### Filling in missing values
+
+Of the `r obs` observations, `r missingObs` rows are missing values.
+
+
+
+### Comparison of activity patterns between weekdays and weekends
