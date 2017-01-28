@@ -61,8 +61,31 @@ occurs at interval `r names(which.max(avg_by_interval))`.
 
 ### Filling in missing values
 
-Of the `r obs` observations, `r missingObs` rows are missing values.
+Of the `r obs` observations, `r missingObs` rows are missing values. We will impute
+missing values by using the Hmisc package and use the step value mean as the
+imputation function. Since we are talking about steps, the imputed value will be
+rounded.
 
+```{r}
+library(Hmisc)
+activity_imputed_mean <- activity
+activity_imputed_mean$steps <- round(with(activity_imputed_mean,
+    impute(activity_imputed_mean$steps, mean)))
+total_steps_by_date_imputed <- aggregate(activity_imputed_mean$steps,
+    by=list(activity_imputed_mean$date), FUN=sum)
+hist(total_steps_by_date_imputed$x,
+     main="Histogram of Total Steps Per Day with Imputed Data",
+     xlab="Total steps by day")
+```
+
+How do the means and medians compare between the original data and the imputed data?
+
+```{r}
+summary(total_steps_by_date$x)
+summary(total_steps_by_date_imputed$x)
+```
+
+As you can see, the mean and median shifted lightly, but it is not appreciable.
 
 
 ### Comparison of activity patterns between weekdays and weekends
