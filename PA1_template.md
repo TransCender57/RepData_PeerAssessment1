@@ -11,7 +11,8 @@ minute  intervals.
   
 ### Load and preprocess the data
 
-```{r}
+
+```r
 activity <- read.csv('activity.csv')
 activity$date <- as.Date(activity$date)
 activity$steps <- as.numeric(as.character(activity$steps))
@@ -22,27 +23,37 @@ completeObs <- nrow(na.omit(activity))
 missingObs <- obs - completeObs
 ```
 
-There are `r obs` observations. `r missingObs` rows are missing observations.
+There are 17568 observations. 2304 rows are missing observations.
   
 ### Histogram of the total number of steps taken each day
 
-```{r}
+
+```r
 total_steps_by_date <- aggregate(activity$steps, by=list(activity$date), FUN=sum)
 hist(total_steps_by_date$x, main="Histogram of Total Steps Per Day", xlab="Total steps by day")
-```    
+```
+
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png)
   
 ### Calculate the mean and median total number of steps taken per day
 
 For this calculation, we'll use the summary function which also includes
 other information such a min, max, quartiles, and the number of NAs.
 
-```{r}
+
+```r
 summary(total_steps_by_date$x)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##      41    8841   10760   10770   13290   21190       8
 ```
 
 ### Show the average number of steps per five minute interval for all days
 
-```{r}
+
+```r
 by_interval <- split(activity, activity$interval)
 avg_by_interval <- sapply(by_interval, function(x) mean(x$steps, na.rm=TRUE))
 plot(avg_by_interval, type="l",
@@ -55,18 +66,51 @@ xlabel <- seq(0, 2400, 400)
 axis(1, at=xtic, labels=xlabel)
 ```
 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png)
+
 The five minute interval which contains the maximum average number of steps
-occurs at interval `r names(which.max(avg_by_interval))`.
+occurs at interval 835.
 
 ### Filling in missing values
 
-Of the `r obs` observations, `r missingObs` rows are missing values. We will impute
+Of the 17568 observations, 2304 rows are missing values. We will impute
 missing values by using the Hmisc package and using the step value mean as the
 imputation function. Since we are talking about steps, the imputed value will be
 rounded.
 
-```{r}
+
+```r
 library(Hmisc)
+```
+
+```
+## Loading required package: lattice
+```
+
+```
+## Loading required package: survival
+```
+
+```
+## Loading required package: Formula
+```
+
+```
+## Loading required package: ggplot2
+```
+
+```
+## 
+## Attaching package: 'Hmisc'
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     format.pval, round.POSIXt, trunc.POSIXt, units
+```
+
+```r
 activity_imputed_mean <- activity
 activity_imputed_mean$steps <- round(with(activity_imputed_mean,
     impute(activity_imputed_mean$steps, mean)))
@@ -77,11 +121,27 @@ hist(total_steps_by_date_imputed$x,
      xlab="Total steps by day")
 ```
 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png)
+
 How do the means and medians compare between the original data and the imputed data?
 
-```{r}
+
+```r
 summary(total_steps_by_date$x)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##      41    8841   10760   10770   13290   21190       8
+```
+
+```r
 summary(total_steps_by_date_imputed$x)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    9819   10660   10750   12810   21190
 ```
 
 As you can see, the mean and median shifted lightly, but it is not appreciable.
@@ -94,7 +154,8 @@ In order to compare activity between weekdays and weekends, we will create a new
 factor called "day" and plot the average number of steps for weekdays separately
 from weekends. The activity comparison will be made using the imputed data.
 
-```{r}
+
+```r
 activity_imputed_mean$day <- weekdays(activity_imputed_mean$date)
 activity_imputed_mean$day <- apply(activity_imputed_mean['day'], 1,
     function(x) { if ((x=="Saturday") | (x=="Sunday")) "weekend" else "weekday" })
@@ -120,3 +181,5 @@ title(xlab = "Interval",
       ylab = "Average Number of Steps",
       outer = TRUE)
 ```
+
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png)
