@@ -50,10 +50,10 @@ plot(avg_by_interval, type="l",
      ylab="Average Number of Steps",
      main="Average Number of Steps Per Five Minute Interval",
      xaxt = "n")
-xtic <- seq(0, length(avg_by_interval), 24)
-xlabel <- seq(0, 2400, 200)
-axis(1, at=xtic, labels=FALSE)
-text(x=xtic, y=par("usr")[3]-15, labels=xlabel, srt=90, adj=1, xpd=TRUE)
+xtic <- seq(0, length(avg_by_interval), 48)
+xlabel <- seq(0, 2400, 400)
+axis(1, at=xtic, labels=xlabel)
+#text(x=xtic, y=par("usr")[3]-15, labels=xlabel, srt=90, adj=1, xpd=TRUE)
 ```
 
 The five minute interval which contains the maximum average number of steps
@@ -62,7 +62,7 @@ occurs at interval `r names(which.max(avg_by_interval))`.
 ### Filling in missing values
 
 Of the `r obs` observations, `r missingObs` rows are missing values. We will impute
-missing values by using the Hmisc package and use the step value mean as the
+missing values by using the Hmisc package and using the step value mean as the
 imputation function. Since we are talking about steps, the imputed value will be
 rounded.
 
@@ -86,6 +86,38 @@ summary(total_steps_by_date_imputed$x)
 ```
 
 As you can see, the mean and median shifted lightly, but it is not appreciable.
+The shift in the mean is caused by rounding the steps to an integer number.
 
 
 ### Comparison of activity patterns between weekdays and weekends
+
+In order to compare activity between weekdays and weekends, we will create a new
+factor called "day" and plot the average number of steps for weekdays separately
+from weekends. The activity comparison will be made using the imputed data.
+
+```{r}
+activity_imputed_mean$day <- weekdays(activity_imputed_mean$date)
+activity_imputed_mean$day <- apply(activity_imputed_mean['day'], 1,
+    function(x) { if ((x=="Saturday") | (x=="Sunday")) "weekend" else "weekday" })
+
+activity_imputed_mean_weekday <- data.frame(split(activity_imputed_mean,
+    activity_imputed_mean$day)['weekday'])
+activity_imputed_mean_weekend <- data.frame(split(activity_imputed_mean,
+    activity_imputed_mean$day)['weekend'])
+by_interval_weekday <- split(activity_imputed_mean_weekday,
+    activity_imputed_mean_weekday$weekday.interval)
+by_interval_weekend <- split(activity_imputed_mean_weekend,
+    activity_imputed_mean_weekend$weekend.interval)
+avg_by_interval_weekday <- sapply(by_interval_weekday,
+    function(x) mean(x$weekday.steps, na.rm=TRUE))
+avg_by_interval_weekend <- sapply(by_interval_weekend,
+    function(x) mean(x$weekend.steps, na.rm=TRUE))
+
+par(mfrow=c(2,1), oma = c(5,4,0,0) + 0.1, mar = c(0,0,1,1) + 0.1)
+plot(avg_by_interval_weekday, type="l", xaxt="n", xlab = "", ylab = "", main="weekday")
+plot(avg_by_interval_weekend, type="l", xaxt="n", xlab = "", ylab = "", main="weekend")
+axis(1, at=xtic, labels=xlabel)
+title(xlab = "Interval",
+      ylab = "Average Number of Steps",
+      outer = TRUE)
+```
